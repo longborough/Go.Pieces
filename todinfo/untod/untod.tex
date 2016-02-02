@@ -1,0 +1,223 @@
+\documentclass[10pt,xcolor=x11names]{beamer}
+\usetheme[RoyalBlue4,colorblocks]{Madrid}
+\usecolortheme[named=RoyalBlue4]{structure}
+\usepackage{fontspec}
+\setsansfont{Calibri}
+\setsansfont{Source Sans Pro}
+\setmonofont{Consolas}
+\setbeamertemplate{navigation symbols}{}
+\usepackage{listings}
+\lstset{%
+  backgroundcolor={\color{Azure1}},
+  basicstyle=\scriptsize\ttfamily,
+  frame=none,
+  }
+\usepackage{booktabs}
+\usepackage{gitinfo2}
+% \usepackage{tikz}
+% \usetikzlibrary{chains,arrows,fit,shapes,decorations.pathmorphing}
+\newcommand{\untod}{\texttt{untod}}
+\newcommand{\tod}{\texttt{TOD}}
+% Title and author information
+\title{\untod{} -- a \tod{} clock utility}
+\author{Brent Longborough}
+\date[\gitAuthorDate]{\gitAuthorDate\\\gitAbbrevHash}
+\begin{document}
+\begin{frame}
+\titlepage
+\end{frame}
+% ----------------------------------------------------------
+\begin{frame}
+  \frametitle{\untod{} -- Overview}
+  \begin{itemize}
+  \item Windows program (as shipped)
+  \item Written in Go
+  \item Compilable for any system with Go support
+  \item Converts \tod{} values to timestamps
+  \item Three timezone offsets available: GMT, local, and alternate
+  \item Converts timestamp to \tod{}
+  \item Leap seconds are not considered
+  \item Extended \tod{} clock range: 1900 -- 38,434
+  \item \untod{} range: 1900 -- 294,176
+  \end{itemize}
+\end{frame}
+% ----------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{\tod{} to timestamp}
+  \begin{block}{Simplest case:}
+    
+  \begin{lstlisting}
+>untod cffffffffffff
+
+000 cfffffff fffff--- : 2015-12-15 13:24:57.238527 GMT +0 2015.349 Tue
+  \end{lstlisting}
+  \end{block}
+
+  \begin{block}{Intelligent padding, multiple conversions:}
+
+Assumes your clock value in the range 2007 -- 3612:
+
+  \begin{lstlisting}
+>untod c 1 bfffffffffff
+
+000 c0000000 00000--- : 2007-01-13 17:55:20.527872 GMT +0 2007.013 Sat
+001 00000000 00000--- : 2042-09-17 23:53:47.370496 GMT +0 2042.260 Wed
+00b ffffffff fff00--- : 3612-07-23 22:45:28.445696 GMT +0 3612.205 Mon
+  \end{lstlisting}
+  \end{block}
+
+\end{frame}
+% ----------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{\tod{} to timestamp -- explicit padding}
+  \begin{block}{A leading 0 means 000:}
+    
+  \begin{lstlisting}
+>untod 7 07
+
+007 00000000 00000--- : 2898-12-28 23:16:31.593472 GMT +0 2898.362 Sun
+000 70000000 00000--- : 1962-06-09 16:27:16.974592 GMT +0 1962.160 Sat
+  \end{lstlisting}
+  \end{block}
+  \begin{block}{-pr: Padding on the right}
+    
+  \begin{lstlisting}
+>untod -pr 000f 0000f
+
+000 f0000000 00000--- : 2033-10-17 04:24:10.659840 GMT +0 2033.290 Mon
+000 0f000000 00000--- : 1908-05-13 04:46:30.666240 GMT +0 1908.134 Wed
+  \end{lstlisting}
+  \end{block}
+
+  \begin{block}{-pl: Padding on the left:}
+    
+  \begin{lstlisting}
+>untod -pl 1 3e8 f4240
+
+000 00000000 00001--- : 1900-01-01 00:00:00.000001 GMT +0 1900.001 Mon
+000 00000000 003e8--- : 1900-01-01 00:00:00.001000 GMT +0 1900.001 Mon
+000 00000000 f4240--- : 1900-01-01 00:00:01.000000 GMT +0 1900.001 Mon
+  \end{lstlisting}
+  \end{block}
+
+\end{frame}
+
+% ----------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{\tod{} to timestamp -- local time adjustment}
+  \begin{block}{Default is local PC time zone}
+Assume this PC is set to Istanbul winter time:
+  \begin{lstlisting}
+>untod d03b7
+
+000 d03b7000 00000--- : 2016-01-31 20:00:11.137024 GMT +0 2016.031 Sun
+000 d03b7000 00000--- : 2016-01-31 22:00:11.137024 GMT +2 2016.031 Sun
+  \end{lstlisting}
+  \end{block}
+  \begin{block}{Environment variable TODL overrides PC timezone:}
+GMT line can be suppressed, too:    
+  \begin{lstlisting}
+>set TODL=-5
+>untod -ng d03b7
+
+000 d03b7000 00000--- : 2016-01-31 15:00:11.137024 GMT -5 2016.031 Sun
+  \end{lstlisting}
+  \end{block}
+
+  \begin{block}{-zl: Local timezone offset overrides everything}
+    
+  \begin{lstlisting}
+>untod -ng -zl +4.5 d03b7
+
+000 d03b7000 00000--- : 2016-02-01 00:30:11.137024 GMT +4.5 2016.032 Mon
+  \end{lstlisting}
+  \end{block}
+
+\end{frame}
+
+% ----------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{\tod{} to timestamp -- alternate time adjustment}
+  \begin{block}{Default is none}
+Assume this PC is set to Istanbul winter time:
+  \begin{lstlisting}
+>untod d1
+000 d1000000 00000--- : 2016-07-06 04:08:03.282944 GMT +0 2016.188 Wed
+000 d1000000 00000--- : 2016-07-06 06:08:03.282944 GMT +2 2016.188 Wed
+  \end{lstlisting}
+  \end{block}
+  \begin{block}{Environment variable TODA provides default:}
+  \begin{lstlisting}
+>set TODA=-8
+>untod d1
+000 d1000000 00000--- : 2016-07-06 04:08:03.282944 GMT +0 2016.188 Wed
+000 d1000000 00000--- : 2016-07-06 06:08:03.282944 GMT +2 2016.188 Wed
+000 d1000000 00000--- : 2016-07-05 20:08:03.282944 GMT -8 2016.187 Tue
+  \end{lstlisting}
+  \end{block}
+  \begin{block}{-za overrides TODA:}
+  \begin{lstlisting}
+>set TODA=-8
+>untod -za 5.5 d1
+000 d1000000 00000--- : 2016-07-06 04:08:03.282944 GMT +0 2016.188 Wed
+000 d1000000 00000--- : 2016-07-06 06:08:03.282944 GMT +2 2016.188 Wed
+000 d1000000 00000--- : 2016-07-06 09:38:03.282944 GMT +5.5 2016.188 Wed
+  \end{lstlisting}
+  \end{block}
+
+\end{frame}
+
+% ----------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{-r: reverse conversion -- timestamp to \tod{}}
+  \begin{block}{Default is current local PC time; override zone with -zl}
+  \begin{lstlisting}
+>untod -r 
+000 d03b6219 25b23--- : 2016-01-31 20:57:59.409443 GMT +2 2016.031 Sun
+
+>untod -zl 0 -r
+000 d03b7d58 57d7b--- : 2016-01-31 20:59:53.432443 GMT +0 2016.031 Sun
+  \end{lstlisting}
+  \end{block}
+  \begin{block}{Just a date (1900--5999)}
+  \begin{lstlisting}
+>untod -r 2144-11-24
+001 b74c69f8 7a000--- : 2144-11-24 00:00:00.000000 GMT +0 2144.329 Tue
+  \end{lstlisting}
+  \end{block}
+  \begin{block}{Or a date and time}
+  \begin{lstlisting}
+>untod -r 1900-01-01 01:00:00
+000 00000d69 3a400--- : 1900-01-01 01:00:00.000000 GMT +0 1900.001 Mon
+  \end{lstlisting}
+  \end{block}
+
+\end{frame}
+
+% ----------------------------------------------------------
+\begin{frame}[fragile]
+  \frametitle{What does the output mean?}
+  \begin{block}{Each line is in the same format}
+  \begin{lstlisting}
+000 d1000000 00000--- : 2016-07-06 09:38:03.282944 GMT +5.5 2016.188 Wed
+--- -----------------   -------------------------- -------- -------- ---
+(1)        (2)                    (3)                (4)      (5)    (6)
+  \end{lstlisting}
+  \end{block}
+  \begin{enumerate}
+  \item Leftmost extension of \tod{} clock (after September 2042)
+  \item \tod{} clock bits 0-51 (52-63 suppressed)
+  \item Timestamp: year \textellipsis{} microsecond
+  \item Time zone offset of timestamp from GMT
+  \item Year and day within year (`Julian day')
+  \item Day of week
+  \end{enumerate}
+
+  \textbf{Note:} this exceeds the currently stated capacity of the
+  extended \tod{} clock, which will wrap on 17th August, 38434
+  (yes,   thirty-eight thousand four hundred and thirty-four),
+  just after 21:30 GMT. 
+
+\end{frame}
+% ----------------------------------------------------------
+\end{document}
