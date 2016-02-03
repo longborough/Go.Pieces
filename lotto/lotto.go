@@ -21,7 +21,23 @@ func pick(q, n int) []int {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())	
-	fmt.Printf("Euromillions: %v %v\n",pick(5,50),pick(2,11))
-	fmt.Printf("Thunderball:  %v %v\n",pick(5,39),pick(1,14))
+	fmt.Printf("Euromillions: %v\t%v\n",pick(5,50),pick(2,11))
+	fmt.Printf("Thunderball:  %v\t%v\n",pick(5,39),pick(1,14))
 	fmt.Printf("Lotto:        %v\n",pick(6,59))
 }
+
+/*
+func main() {
+	rand.Seed(time.Now().UnixNano())
+	var list [50]int
+	for i := 0; i<1000000; i++ {
+		s := pick(5,50)
+		for _, r := range s {
+			list[r-1]++
+		}
+	}
+	for _, r := range list {
+		fmt.Printf("%d\n",r)
+	}
+}
+*/
