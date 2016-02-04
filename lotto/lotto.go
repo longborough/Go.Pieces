@@ -6,7 +6,7 @@ import "math/rand"
 import "sort"
 import "time"
 
-// pick: generates a random permutation of q integers from [1,n] 
+// pick: generates a random permutation of q integers from [1,n]
 func pick(q, n int) []int {
 	if q > n {
 		q = n
@@ -20,10 +20,10 @@ func pick(q, n int) []int {
 }
 
 func main() {
-	rand.Seed(time.Now().UnixNano())	
-	fmt.Printf("Euromillions: %v\t%v\n",pick(5,50),pick(2,11))
-	fmt.Printf("Thunderball:  %v\t%v\n",pick(5,39),pick(1,14))
-	fmt.Printf("Lotto:        %v\n",pick(6,59))
+	rand.Seed(time.Now().UnixNano())
+	fmt.Printf("Euromillions: %v\t%v\n", pick(5, 50), pick(2, 11))
+	fmt.Printf("Thunderball:  %v\t%v\n", pick(5, 39), pick(1, 14))
+	fmt.Printf("Lotto:        %v\n", pick(6, 59))
 }
 
 /*
