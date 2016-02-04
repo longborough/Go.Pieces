@@ -1,10 +1,14 @@
 // todinfo: TOD clock conversion routines
 package todinfo
 
-import "fmt"
-import "math"
-import "encoding/hex"
-import "strings"
+import (
+	"bytes"
+	"encoding/binary"
+	"encoding/hex"
+	"fmt"
+	"math"
+	"strings"
+)
 
 type Todinfo struct {
 	Intod                       string
@@ -202,13 +206,12 @@ func todpad(s string, lp bool, rp bool) string {
 //          to a int64 number of milliseconds
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 func tod2int(s string) int64 {
+	var r int64
 	ss, err := hex.DecodeString(s)
 	if err != nil {
 		return 0
 	}
-	r := int64(0)
-	for i := 0; i < len(ss); i++ {
-		r = r<<8 + int64(ss[i])
-	}
+	buf := bytes.NewReader(ss)
+	_ = binary.Read(buf, binary.BigEndian, &r)
 	return r
 }
