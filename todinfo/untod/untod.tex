@@ -196,6 +196,24 @@ Assume this PC is set to Istanbul winter time:
 
 % ----------------------------------------------------------
 \begin{frame}[fragile]
+  \frametitle{-r: reverse conversion -- Julian timestamp to \tod{}}
+  \begin{block}{Just a date (1900--5999)}
+  \begin{lstlisting}
+>untod -r 2144.137
+001 b65b03df fa000--- : 2144-05-16 00:00:00.000000 GMT +0 2144.137 Sat
+  \end{lstlisting}
+  \end{block}
+  \begin{block}{Or a date and time}
+  \begin{lstlisting}
+>untod -r 1900.060 12:00:00
+000 004acef8 ed000--- : 1900-03-01 12:00:00.000000 GMT +0 1900.060 Thu
+  \end{lstlisting}
+  \end{block}
+
+\end{frame}
+
+% ----------------------------------------------------------
+\begin{frame}[fragile]
   \frametitle{What does the output mean?}
   \begin{block}{Each line is in the same format}
   \begin{lstlisting}

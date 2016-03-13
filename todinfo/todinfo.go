@@ -52,13 +52,19 @@ func round(num float64) float64 {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 func Todsearch(sdate string, stime string, offset float64) *Todinfo {
 	var a *Todinfo
+	var mdate string
+	jdf := ( len(sdate) == 8 )
 	bot := int64(0)
 	top := int64(1) << 57
 	lmid := bot
 	counter := 0
 	for mid := (bot + top) / 2; mid != lmid; mid, lmid = ((bot + top) / 2), mid {
 		a = Todcalc(fmt.Sprintf("%x", mid), offset, true, false)
-		mdate := fmt.Sprintf("%4d-%02d-%02d", a.Year, a.Month, a.Day)
+		if jdf {
+			mdate = fmt.Sprintf("%04d.%03d", a.Year, a.Yday)
+		} else {
+			mdate = fmt.Sprintf("%04d-%02d-%02d", a.Year, a.Month, a.Day)
+		}
 		mtime := fmt.Sprintf("%02d:%02d:%02d.%06d", a.Hour, a.Minute, a.Second, a.Musec)
 		switch {
 		case sdate < mdate:
