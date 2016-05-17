@@ -5,6 +5,7 @@ package main
 import "fmt"
 import "flag"
 import "math"
+import "sort"
 import "strconv"
 
 func main() {
@@ -49,6 +50,7 @@ func doloop() {
 		return
 	}
 	exlist = getext()
+	sort.Sort(sort.Reverse(sort.Float64Slice(exlist)))
 	mdm := 1000 * md
 	fm = f0*mdm/(f0+mdm)
 	fmt.Printf("Lens: %5.0f mm, Min focus: %0.3f m, Fmin %0.1f mm\n", f0, md, fm)
