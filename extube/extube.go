@@ -51,32 +51,29 @@ func doloop() {
 	fm = f0*mdm/(f0+mdm)
 	fmt.Printf("Lens: %5.0f mm, Min focus: %0.3f m, Fmin %0.1f mm\n", f0, md, fm)
 	exlist = getext()
-	calcext("",exlist,0.0,0,f0,fm)
+	calcext(exlist,f0,fm)
 	return
 }
-func calcext(pad string, list []float64, tex float64, i int, f0 float64, fm float64) {
-//	println("-->",tex,i)
-	var j int
-	var k int
-	var cex float64
-	var elx float64
-	for j = i; j < len(list); j++ {
-//		println(pad+"*",i,j,list[j])
-		cex = list[j]
-		if math.IsNaN(cex) {
-			continue
+func calcext(list []float64, f0 float64, fm float64) {
+	var nt int // number of tubes
+	nt = len(list)
+	
+	var nc int // max selector + 1
+	nc = 1 << uint(nt)
+	
+	var j int // current selector
+	for j = 1; j < nc; j++ {
+		bs := fmt.Sprintf("%b", j+nc)
+		var k int
+		var elx float64
+		for k = 0 ; k < nt; k++ {
+			if bs[k+1] == 49 {
+				elx += list[k]
+			}
 		}
-		elx = tex + cex 
 		xd := f0*(f0+elx)/elx
 		yd := fm * (f0 + elx) / (f0 + elx - fm)
-		fmt.Printf(pad+"Ex: %7.0f     %0.1f -- %0.1f  %d  %d  %0.0f \n", elx, xd, yd, j, i, tex)
-		for k = j+1; k < len(list); k++ {
-//			println(pad+"-->",elx,i,j,k)
-			calcext(pad + "   ", list,elx,k,f0,fm)
-//			println(pad+"<--",elx,i,j,k)
-		}
+		fmt.Printf("Ex: %7.0f     %0.1f -- %0.1f\n", elx, xd, yd)
 	}
-//	println("<--",tex,i)
 	return
 }
-
