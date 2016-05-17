@@ -20,6 +20,7 @@ func getext() []float64 {
 			list[i-2] = el
 		} else {
 			list[i-2] = math.NaN()
+			fmt.Printf("%s is not a valid number -- ignored\n", flag.Arg(i))
 		}
 	}
 	return list
@@ -47,10 +48,10 @@ func doloop() {
 		println("Sorry - bad minimum distance")
 		return
 	}
+	exlist = getext()
 	mdm := 1000 * md
 	fm = f0*mdm/(f0+mdm)
 	fmt.Printf("Lens: %5.0f mm, Min focus: %0.3f m, Fmin %0.1f mm\n", f0, md, fm)
-	exlist = getext()
 	calcext(exlist,f0,fm)
 	return
 }
@@ -70,6 +71,9 @@ func calcext(list []float64, f0 float64, fm float64) {
 			if bs[k+1] == 49 {
 				elx += list[k]
 			}
+		}
+		if math.IsNaN(elx) {
+			continue
 		}
 		xd := f0*(f0+elx)/elx
 		yd := fm * (f0 + elx) / (f0 + elx - fm)
