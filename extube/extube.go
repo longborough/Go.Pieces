@@ -47,34 +47,36 @@ func doloop() {
 		println("Sorry - bad minimum distance")
 		return
 	}
-	exlist = getext()
 	mdm := 1000 * md
 	fm = f0*mdm/(f0+mdm)
 	fmt.Printf("Lens: %5.0f mm, Min focus: %0.3f m, Fmin %0.1f mm\n", f0, md, fm)
 	exlist = getext()
-	calcext(exlist,0.0,0,f0,fm)
+	calcext("",exlist,0.0,0,f0,fm)
 	return
 }
-func calcext(list []float64, tex float64, i int, f0 float64, fm float64) {
-	println("-->",tex,i)
+func calcext(pad string, list []float64, tex float64, i int, f0 float64, fm float64) {
+//	println("-->",tex,i)
 	var j int
 	var k int
 	var cex float64
 	var elx float64
 	for j = i; j < len(list); j++ {
+//		println(pad+"*",i,j,list[j])
 		cex = list[j]
-		if math.IsNaN(cex) || cex <= 0.0  {
+		if math.IsNaN(cex) {
 			continue
 		}
 		elx = tex + cex 
 		xd := f0*(f0+elx)/elx
 		yd := fm * (f0 + elx) / (f0 + elx - fm)
-		fmt.Printf("Ex: %7.0f     %0.1f -- %0.1f  %d  %d  %0.0f \n", elx, xd, yd, j, i, tex)
+		fmt.Printf(pad+"Ex: %7.0f     %0.1f -- %0.1f  %d  %d  %0.0f \n", elx, xd, yd, j, i, tex)
 		for k = j+1; k < len(list); k++ {
-			calcext(list,elx,k,f0,fm)
+//			println(pad+"-->",elx,i,j,k)
+			calcext(pad + "   ", list,elx,k,f0,fm)
+//			println(pad+"<--",elx,i,j,k)
 		}
 	}
-	println("<--",tex,i)
+//	println("<--",tex,i)
 	return
 }
 
