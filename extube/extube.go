@@ -52,7 +52,7 @@ func doloop() {
 	exlist = getext()
 	sort.Sort(sort.Reverse(sort.Float64Slice(exlist)))
 	mdm := 1000 * md
-	fm = f0*mdm/(f0+mdm)
+	fm = f0 * (mdm - f0) / mdm
 	fmt.Printf("Lens: %5.0f mm, Min focus: %0.3f m, Fmin %0.1f mm\n", f0, md, fm)
 	calcext(exlist,f0,fm)
 	return
@@ -65,7 +65,7 @@ func calcext(list []float64, f0 float64, fm float64) {
 	nc = 1 << uint(nt)
 	
 	var j int // current selector
-	for j = 1; j < nc; j++ {
+	for j = 0; j < nc; j++ {
 		bs := fmt.Sprintf("%b", j+nc)
 		var k int
 		var elx float64
@@ -77,8 +77,9 @@ func calcext(list []float64, f0 float64, fm float64) {
 		if math.IsNaN(elx) {
 			continue
 		}
-		xd := f0*(f0+elx)/elx
-		yd := fm * (f0 + elx) / (f0 + elx - fm)
+		dnum := (f0 + elx ) * (f0 + elx )
+		xd := dnum / elx
+		yd := dnum / (f0 + elx - fm)
 		fmt.Printf("Ex: %7.0f     %0.1f -- %0.1f\n", elx, xd, yd)
 	}
 	return
