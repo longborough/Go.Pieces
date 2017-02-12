@@ -45,7 +45,8 @@ func main() {
 	loffPtr := flag.Float64("zl", math.NaN(), "Zone Local: time zone offset")
 	aoffPtr := flag.Float64("za", math.NaN(), "Zone Additional: time zone offset")
 	revPtr := flag.Bool("r", false, "Reverse:   convert timestamp to TOD")
-	ngPtr := flag.Bool("ng", false, "No GMT:   suppress GMT line")
+	revPmc := flag.Bool("m", false, "Minute:    convert PARS perpetual minute clock")
+	ngPtr := flag.Bool("ng", false, "No GMT:    suppress GMT line")
 	lpPtr := flag.Bool("pl", false, "Pad Left:  pad TOD with 0 on the left")
 	rpPtr := flag.Bool("pr", false, "Pad Right: pad TOD with 0 on the left")
 	flag.Parse()
@@ -123,14 +124,18 @@ func main() {
 		}
 	} else {
 		for i := 0; i < flag.NArg(); i++ {
-			if !*ngPtr {
-				fmt.Print(todinfo.Todcalc(flag.Arg(i), 0, *lpPtr, *rpPtr))
-			}
-			if loff != 0 || *ngPtr {
-				fmt.Print(todinfo.Todcalc(flag.Arg(i), loff, *lpPtr, *rpPtr))
-			}
-			if aoff != 0 && aoff != loff {
-				fmt.Print(todinfo.Todcalc(flag.Arg(i), aoff, *lpPtr, *rpPtr))
+			if !*revPmc {
+				if !*ngPtr {
+					fmt.Print(todinfo.Todcalc(flag.Arg(i), 0, *lpPtr, *rpPtr, *revPmc))
+				}
+				if loff != 0 || *ngPtr {
+					fmt.Print(todinfo.Todcalc(flag.Arg(i), loff, *lpPtr, *rpPtr, *revPmc))
+				}
+				if aoff != 0 && aoff != loff {
+					fmt.Print(todinfo.Todcalc(flag.Arg(i), aoff, *lpPtr, *rpPtr, *revPmc))
+				}
+			} else {
+				fmt.Print(todinfo.Todcalc(flag.Arg(i), loff, *lpPtr, *rpPtr, *revPmc))				
 			}
 		}
 	}

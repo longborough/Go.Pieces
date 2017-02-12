@@ -2,13 +2,13 @@
 package todinfo
 
 import (
-	"bytes"
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math"
 	"strings"
 )
+
+const ParsDayZero int64 = 2082931200000000 // Pars Day Zero microseconds TOD
 
 type Todinfo struct {
 	Intod                       string
@@ -18,19 +18,28 @@ type Todinfo struct {
 	Year, Month, Day, Yday      int64
 	Hour, Minute, Second, Musec int64
 	Wkday                       int
+	Pmc                         int64
 }
 
 // -----------------------------------------------------------
 // String: provides the interface for printing Todinfo structures
 func (t Todinfo) String() string {
 	var offset string
+	var pmc string
 	wday := []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}[t.Wkday]
 	if nearInteger(t.Offset) {
 		offset = fmt.Sprintf("%+d", int(round(t.Offset)))
 	} else {
 		offset = fmt.Sprintf("%+0.1f", t.Offset)
 	}
-	return fmt.Sprintf("%3s %8s %4s--- : %4d-%02d-%02d %02d:%02d:%02d.%06d GMT %s %4d.%03d %s\n", t.Hextod[0:3], t.Hextod[3:11], t.Hextod[11:16], t.Year, t.Month, t.Day, t.Hour, t.Minute, t.Second, t.Musec, offset, t.Year, t.Yday, wday)
+	if t.Pmc < 0 || t.Pmc > 4294967295 { 
+		pmc = "---" 
+	} else {
+		pmc = fmt.Sprintf("%08x", t.Pmc)
+	}
+	return fmt.Sprintf("%3s %8s %4s--- : %4d-%02d-%02d %02d:%02d:%02d.%06d GMT %s %4d.%03d %s %s\n",
+		t.Hextod[0:3], t.Hextod[3:11], t.Hextod[11:16], t.Year, t.Month, t.Day, 
+		t.Hour, t.Minute, t.Second, t.Musec, offset, t.Year, t.Yday, wday, pmc)
 }
 
 // -----------------------------------------------------------
@@ -59,7 +68,7 @@ func Todsearch(sdate string, stime string, offset float64) *Todinfo {
 	lmid := bot
 	counter := 0
 	for mid := (bot + top) / 2; mid != lmid; mid, lmid = ((bot + top) / 2), mid {
-		a = Todcalc(fmt.Sprintf("%x", mid), offset, true, false)
+		a = Todcalc(fmt.Sprintf("%x", mid), offset, true, false, false)
 		if jdf {
 			mdate = fmt.Sprintf("%04d.%03d", a.Year, a.Yday)
 		} else {
@@ -98,11 +107,22 @@ func Todsearch(sdate string, stime string, offset float64) *Todinfo {
 //          and a hours float offset
 //          to a date and time string
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-func Todcalc(s string, offset float64, lpad bool, rpad bool) *Todinfo {
+func Todcalc(s string, offset float64, lpad bool, rpad bool, pmcin bool) *Todinfo {
 	const micro int64 = 24 * 3600 * 1000000
-	input := todpad(s, lpad, rpad)
-	nx := tod2int(input)
+	var nx int64
+	var pmc int64
+	var input string
 	ot := 1000000 * int64(round(offset*3600)) // offset in microseconds
+	if pmcin {
+		input = "00000000"[len(s):8] + s
+		nx = ParsDayZero + tod2int((input)) * 60000000 
+		input = fmt.Sprintf("%016X", nx)
+		pmc = (nx - ParsDayZero) / 60000000
+	} else {
+		input = todpad(s, lpad, rpad)
+		nx = tod2int(input)
+		pmc = (nx - ParsDayZero + ot) / 60000000
+	}
 	dn := int64(ot + nx + 5*micro)            // extra five days to allow -ve offset
 	mms := dn % micro
 	sss := int64(mms / 1000000)
@@ -151,6 +171,7 @@ func Todcalc(s string, offset float64, lpad bool, rpad bool) *Todinfo {
 		Musec:  mms,
 		Yday:   yd,
 		Wkday:  wkday,
+		Pmc:    pmc,
 	}
 }
 
@@ -213,11 +234,14 @@ func todpad(s string, lp bool, rp bool) string {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 func tod2int(s string) int64 {
 	var r int64
+	var x byte
 	ss, err := hex.DecodeString(s)
 	if err != nil {
 		return 0
 	}
-	buf := bytes.NewReader(ss)
-	_ = binary.Read(buf, binary.BigEndian, &r)
+	r = 0
+	for _, x = range ss {
+		r = r * 256 + int64(x)
+	}
 	return r
 }
