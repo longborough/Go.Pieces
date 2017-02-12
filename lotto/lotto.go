@@ -24,6 +24,7 @@ func main() {
 	fmt.Printf("Euromillions: %v\t%v\n", pick(5, 50), pick(2, 11))
 	fmt.Printf("Thunderball:  %v\t%v\n", pick(5, 39), pick(1, 14))
 	fmt.Printf("Lotto:        %v\n", pick(6, 59))
+	fmt.Printf("Five:         %v\n", rand.Perm(5))
 }
 
 /*
