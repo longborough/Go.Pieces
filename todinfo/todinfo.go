@@ -103,8 +103,8 @@ func Todsearch(sdate string, stime string, offset float64) *Todinfo {
 
 // -----------------------------------------------------------
 // Todcalc:
-//          converts a [16]uint8 tod clock
-//          and a hours float offset
+//          converts a [16]uint8 tod clock or a PARS perpetual minute clock
+//          and an hours float offset
 //          to a date and time string
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 func Todcalc(s string, offset float64, lpad bool, rpad bool, pmcin bool) *Todinfo {
@@ -115,9 +115,10 @@ func Todcalc(s string, offset float64, lpad bool, rpad bool, pmcin bool) *Todinf
 	ot := 1000000 * int64(round(offset*3600)) // offset in microseconds
 	if pmcin {
 		input = "00000000"[len(s):8] + s
-		nx = ParsDayZero + tod2int((input)) * 60000000 
-		input = fmt.Sprintf("%016X", nx)
-		pmc = (nx - ParsDayZero) / 60000000
+		pmc =  tod2int((input))
+		nx = ParsDayZero + pmc * 60000000 - ot 
+		input = fmt.Sprintf("%016x", nx)
+		// pmc = (nx - ParsDayZero) / 60000000
 	} else {
 		input = todpad(s, lpad, rpad)
 		nx = tod2int(input)

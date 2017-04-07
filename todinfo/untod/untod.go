@@ -48,7 +48,7 @@ func main() {
 	revPmc := flag.Bool("m", false, "Minute:    convert PARS perpetual minute clock")
 	ngPtr := flag.Bool("ng", false, "No GMT:    suppress GMT line")
 	lpPtr := flag.Bool("pl", false, "Pad Left:  pad TOD with 0 on the left")
-	rpPtr := flag.Bool("pr", false, "Pad Right: pad TOD with 0 on the left")
+	rpPtr := flag.Bool("pr", false, "Pad Right: pad TOD with 0 on the right")
 	flag.Parse()
 	if math.IsNaN(*loffPtr) { // Local offset parameter not given
 		if math.IsNaN(loff) { // Nor environment variable
