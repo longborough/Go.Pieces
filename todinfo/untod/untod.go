@@ -10,6 +10,8 @@ import "os"
 import "time"
 import "github.com/longborough/todinfo"
 
+const version string = "1.0.0"
+
 // -----------------------------------------------------------
 // envFloat:
 //          Gets an hour offset from a named environment
@@ -44,6 +46,7 @@ func main() {
 	aoff := envFloat("TODA")     // Try for additional offset
 	loffPtr := flag.Float64("zl", math.NaN(), "Zone Local: time zone offset")
 	aoffPtr := flag.Float64("za", math.NaN(), "Zone Additional: time zone offset")
+	verPtr := flag.Bool("v", false, "Print version numbers and exit")
 	revPtr := flag.Bool("r", false, "Reverse:   convert timestamp to TOD")
 	revPmc := flag.Bool("m", false, "Minute:    convert PARS perpetual minute clock")
 	ngPtr := flag.Bool("ng", false, "No GMT:    suppress GMT line")
@@ -64,7 +67,9 @@ func main() {
 	} else { // Local offset parameter given
 		aoff = *aoffPtr // Use parameter value
 	}
-	if *revPtr {
+	if *verPtr {
+		fmt.Print("Versions: untod: " + version + "  todinfo: " + todinfo.GetVersion())
+	} else if *revPtr {
 		var sdate, stime string
 		switch flag.NArg() {
 		case 0:

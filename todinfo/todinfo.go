@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const version string = "1.0.0"
+
 const ParsDayZero int64 = 2082931200000000 // Pars Day Zero microseconds TOD
 
 type Todinfo struct {
@@ -19,6 +21,10 @@ type Todinfo struct {
 	Hour, Minute, Second, Musec int64
 	Wkday                       int
 	Pmc                         int64
+}
+
+func GetVersion() string {
+	return version
 }
 
 // -----------------------------------------------------------
