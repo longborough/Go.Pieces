@@ -10,7 +10,7 @@ import "os"
 import "time"
 import "github.com/longborough/todinfo"
 
-const version string = "1.0.0"
+const version string = "1.0.0001"
 
 // -----------------------------------------------------------
 // envFloat:
@@ -68,7 +68,7 @@ func main() {
 		aoff = *aoffPtr // Use parameter value
 	}
 	if *verPtr {
-		fmt.Print("Versions: untod: " + version + "  todinfo: " + todinfo.GetVersion())
+		println("Versions: untod: " + version + "  todinfo: " + todinfo.GetVersion())
 	} else if *revPtr {
 		var sdate, stime string
 		switch flag.NArg() {
