@@ -29,11 +29,29 @@ func XrefServer(w http.ResponseWriter, req *http.Request) {
 	var found bool = false
 	var output string = ""
 	var line string = ""
+	var star byte = '*' 
+	var i int
+	var x string
+	var lastx string = ""
 	xref := strings.ToUpper(req.URL.Path[len("/xref/"):])
 	list := regexp.MustCompile("[ ,]+").Split(xref,-1)
 	if len(list) < 1 {
 		io.WriteString(w, "Need one or more program names after xref. Try /xref/uio3\n")
 	} else {
+		for i, x = range list {
+			if len(x) > 1 && x[len(x)-1] == star {
+				list[i] = x[:len(x)-1]
+				lastx = list[i]
+			} else if len(x) >= 4 {
+				lastx = x[:4]
+			} else {
+				list[i] = x 					
+				if len(x) < len(lastx) {
+					list[i] = lastx[:len(lastx)-len(x)] + x 
+				}
+				lastx = list[i]
+			}
+		}
 		data, err := ioutil.ReadFile("D:/BLiss/Turkish.Airlines.2012/Troya.Xref/troya.refs")
 		table := strings.Split(fmt.Sprintf("%s",data),"\n")
 		if err != nil {
@@ -43,7 +61,7 @@ func XrefServer(w http.ResponseWriter, req *http.Request) {
 			for _, titem := range table {
 				if len(titem) >8 {
 					for _, xitem := range list {
-						if xitem == titem[:4] || xitem == titem[5:9] {
+						if xitem == titem[:len(xitem)] || xitem == titem[5:5+len(xitem)] {
 							found = true
 							buildxref(titem,&last,&line,&output)
 						}
