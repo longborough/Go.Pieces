@@ -25,6 +25,16 @@ func DataServer(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func ProgServer(w http.ResponseWriter, req *http.Request) {
+	path := strings.ToUpper(req.URL.Path[len("/prog/"):])
+	dat, err := ioutil.ReadFile("D:/BLiss/Datalex/Lan.Backup/Troya.Endevor.Mirror/" + path)
+	if err != nil {
+		io.WriteString(w, fmt.Sprintf("Oops! Couldn't find %s\n",path))
+	} else {
+		io.WriteString(w, fmt.Sprintf("%s\n",dat))
+	}
+}
+
 func XrefServer(w http.ResponseWriter, req *http.Request) {
 	var found bool = false
 	var output string = ""
@@ -106,6 +116,7 @@ func ExitServer(w http.ResponseWriter, req *http.Request) {
 func main() {
 	http.HandleFunc("/hello", HelloServer)
 	http.HandleFunc("/data", DataServer)
+	http.HandleFunc("/prog/", ProgServer)
 	http.HandleFunc("/xref/", XrefServer)
 	http.HandleFunc("/bye", ExitServer)
 	log.Fatal(http.ListenAndServe(":11080", nil))
