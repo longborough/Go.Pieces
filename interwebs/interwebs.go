@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -16,18 +18,35 @@ func HelloServer(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, "Well hello, world!\n")
 }
 
-func DataServer(w http.ResponseWriter, req *http.Request) {
-	dat, err := ioutil.ReadFile("D:/BLiss/Turkish.Airlines.2012/Load.History/LMOD.History/critical.lmod.log")
+func LmodServer(w http.ResponseWriter, req *http.Request) {
+	cmd:= exec.Command("git", "diff", "-U9999", "HEAD^")
+	cmd.Dir = "/data/brentl/LMOD.History"
+	out, err := cmd.Output()
 	if err != nil {
 		io.WriteString(w, fmt.Sprintf("Oops! %s\n",err))
 	} else {
-		io.WriteString(w, fmt.Sprintf("%s\n",dat))
+		io.WriteString(w, fmt.Sprintf("%s\n",out))
 	}
 }
 
 func ProgServer(w http.ResponseWriter, req *http.Request) {
 	path := strings.ToUpper(req.URL.Path[len("/prog/"):])
-	dat, err := ioutil.ReadFile("D:/BLiss/Datalex/Lan.Backup/Troya.Endevor.Mirror/" + path)
+	dat, err := ioutil.ReadFile("/data/brentl/Troya.Endevor/" + path)
+	if err != nil {
+		io.WriteString(w, fmt.Sprintf("Oops! Couldn't find %s\n",path))
+	} else {
+		io.WriteString(w, fmt.Sprintf("%s\n",dat))
+	}
+}
+
+func ProcServer(w http.ResponseWriter, req *http.Request) {
+	path := strings.ToUpper(req.URL.Path[len("/proc/"):])
+	if path == "PROD" {
+		path = "/PLEX.PROCLIB/ALCSPROD"
+	} else {
+		path = "/THY14.PROCLIB/ALCS" + path
+	}
+	dat, err := ioutil.ReadFile("/data/brentl/THY.Support.Code" + path)
 	if err != nil {
 		io.WriteString(w, fmt.Sprintf("Oops! Couldn't find %s\n",path))
 	} else {
@@ -62,7 +81,7 @@ func XrefServer(w http.ResponseWriter, req *http.Request) {
 				lastx = list[i]
 			}
 		}
-		data, err := ioutil.ReadFile("D:/BLiss/Turkish.Airlines.2012/Troya.Xref/troya.refs")
+		data, err := ioutil.ReadFile("/data/brentl/Troya.Xref/troya.refs")
 		table := strings.Split(fmt.Sprintf("%s",data),"\n")
 		if err != nil {
 			io.WriteString(w, fmt.Sprintf("Oops! %s\n",err))
@@ -110,14 +129,17 @@ func addout(output *string, line *string) {
 }
 
 func ExitServer(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "Farewell, cruel world!\n")
+	pid := os.Getpid()
+	myself, _ := os.FindProcess(pid)
+	_ = myself.Kill()
 }
 
 func main() {
 	http.HandleFunc("/hello", HelloServer)
-	http.HandleFunc("/data", DataServer)
+	http.HandleFunc("/lmod", LmodServer)
+	http.HandleFunc("/proc/", ProcServer)
 	http.HandleFunc("/prog/", ProgServer)
 	http.HandleFunc("/xref/", XrefServer)
-	http.HandleFunc("/bye", ExitServer)
+	http.HandleFunc("/shutdown/now", ExitServer)
 	log.Fatal(http.ListenAndServe(":11080", nil))
 }
