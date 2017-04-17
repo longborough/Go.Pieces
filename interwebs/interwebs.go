@@ -92,14 +92,14 @@ func XrefServer(w http.ResponseWriter, req *http.Request) {
 					for _, xitem := range list {
 						if xitem == titem[:len(xitem)] || xitem == titem[5:5+len(xitem)] {
 							found = true
-							buildxref(titem,&last,&line,&output)
+							buildxref(titem[:4],titem[5:9],&last,&line,&output,9)
 						}
 					}
 				} 
 			} 
 		}
 		if found {
-			addout(&output,&line)
+			addout(&output,&line,9)
 			io.WriteString(w, output)
 		} else {
 			io.WriteString(w, fmt.Sprintf("Sorry, nothing found:\n Query: %s\n",list))
@@ -107,31 +107,86 @@ func XrefServer(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func buildxref(xitem string, last *string, line *string, output *string) {
-	to := xitem[:4]
-	from := xitem[5:9]
+func SerrServer(w http.ResponseWriter, req *http.Request) {
+	var found bool = false
+	var output string = ""
+	var line string = ""
+	var star byte = '*' 
+	var i int
+	var x string
+	var lastx string = ""
+	xref := strings.ToUpper(req.URL.Path[len("/serrc/"):])
+	list := regexp.MustCompile("[ ,]+").Split(xref,-1)
+	if len(list) < 1 {
+		io.WriteString(w, "Need one or more program names after xref. Try /xref/uio3\n")
+	} else {
+		for i, x = range list {
+			if len(x) > 1 && x[len(x)-1] == star {
+				list[i] = x[:len(x)-1]
+				lastx = list[i]
+			} else if len(x) >= 6 {
+				lastx = x[:6]
+			} else {
+				list[i] = x 					
+				if len(x) < len(lastx) {
+					list[i] = lastx[:len(lastx)-len(x)] + x 
+				}
+				lastx = list[i]
+			}
+		}
+		data, err := ioutil.ReadFile("/data/brentl/Troya.Xref/troya.serrc")
+		table := strings.Split(fmt.Sprintf("%s",data),"\n")
+		if err != nil {
+			io.WriteString(w, fmt.Sprintf("Oops! %s\n",err))
+		} else {
+			var last string = ""
+			for _, titem := range table {
+				if len(titem) > 8 {
+					for _, xitem := range list {
+						if xitem == titem[:len(xitem)] || xitem == titem[5:5+len(xitem)] {
+							found = true
+							buildxref(titem[:8],titem[9:13],&last,&line,&output,13)
+						}
+					}
+				} 
+			} 
+		}
+		if found {
+			addout(&output,&line,13)
+			io.WriteString(w, output)
+		} else {
+			io.WriteString(w, fmt.Sprintf("Sorry, nothing found:\n Query: %s\n",list))
+		}
+	}
+}
+
+func buildxref(to string, from string, last *string, line *string, output *string, minlen int) {
 	if to != *last {
-		addout(output,line)
+		addout(output, line, minlen)
 		*line = to + " <== "
 		*last = to
 	}
 	*line += from + " "
 	if len(*line) > 80 {
-		addout(output,line)
-		*line = "         "
+		addout(output,line,minlen)
+		*line = "     " + "             "[:len(to)]
 	}
 }
 
-func addout(output *string, line *string) {
-	if len(*line) > 5 {
+func addout(output *string, line *string, minlen int) {
+	if len(*line) > minlen {
 		*output = *output + "\n" + *line
 	}
 }
 
 func ExitServer(w http.ResponseWriter, req *http.Request) {
-	pid := os.Getpid()
-	myself, _ := os.FindProcess(pid)
-	_ = myself.Kill()
+	if req.Host != "127.0.0.1:11080" {
+		io.WriteString(w, fmt.Sprintf("Sorry, nice try though\n"))
+	} else {
+		pid := os.Getpid()
+		myself, _ := os.FindProcess(pid)
+		_ = myself.Kill()
+	}
 }
 
 func main() {
@@ -140,6 +195,7 @@ func main() {
 	http.HandleFunc("/proc/", ProcServer)
 	http.HandleFunc("/prog/", ProgServer)
 	http.HandleFunc("/xref/", XrefServer)
+	http.HandleFunc("/serrc/", SerrServer)
 	http.HandleFunc("/shutdown/now", ExitServer)
 	log.Fatal(http.ListenAndServe(":11080", nil))
 }
