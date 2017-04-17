@@ -129,9 +129,13 @@ func addout(output *string, line *string) {
 }
 
 func ExitServer(w http.ResponseWriter, req *http.Request) {
-	pid := os.Getpid()
-	myself, _ := os.FindProcess(pid)
-	_ = myself.Kill()
+	if req.Host != "127.0.0.1:11080" {
+		io.WriteString(w, fmt.Sprintf("Sorry, nice try though\n"))
+	} else {
+		pid := os.Getpid()
+		myself, _ := os.FindProcess(pid)
+		_ = myself.Kill()
+	}
 }
 
 func main() {
