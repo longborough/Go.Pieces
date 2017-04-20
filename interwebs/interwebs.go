@@ -210,6 +210,7 @@ func main() {
 	http.HandleFunc("/lmod", LmodServer)
 	http.HandleFunc("/proc/", ProcServer)
 	http.HandleFunc("/prog/", ProgServer)
+	http.HandleFunc("/grep/", GrepServer)
 	http.HandleFunc("/xref/", XrefServer)
 	http.HandleFunc("/serrc/", SerrServer)
 	http.HandleFunc("/shutdown/now", ExitServer)
