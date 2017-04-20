@@ -23,13 +23,14 @@ func GrepServer(w http.ResponseWriter, req *http.Request) {
 	if len(rex) < 2 {
 		io.WriteString(w, fmt.Sprintf("Need at least 2 characters to search\n"))
 	} else {
-		cmd:= exec.Command("grep", "-ERia", "/(?=^[^*]).*" + rex + "/", "*.EASM")
+		rex = "^[^*].*" + rex
+		cmd:= exec.Command("grep", "-ERnia", "--exclude-dir=.git", rex, ".")
 		cmd.Dir = "/data/brentl/Troya.Endevor"
-		out, err := cmd.Output()
-		if err != nil {
-			io.WriteString(w, fmt.Sprintf("Oops! %s\n",err))
-		} else {
+		out, _ := cmd.Output()
+		if len(out) > 10 {
 			io.WriteString(w, fmt.Sprintf("%s\n",out))
+		} else {
+			io.WriteString(w, fmt.Sprintf("Oops!\n"))
 		}
 	}
 }
