@@ -18,6 +18,22 @@ func HelloServer(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, "Well hello, world!\n")
 }
 
+func GrepServer(w http.ResponseWriter, req *http.Request) {
+	rex := req.URL.Path[len("/grep/"):]
+	if len(rex) < 2 {
+		io.WriteString(w, fmt.Sprintf("Need at least 2 characters to search\n"))
+	} else {
+		cmd:= exec.Command("grep", "-ERia", "/(?=^[^*]).*" + + "/", "*.EASM")
+		cmd.Dir = "/data/brentl/Troya.Endevor"
+		out, err := cmd.Output()
+		if err != nil {
+			io.WriteString(w, fmt.Sprintf("Oops! %s\n",err))
+		} else {
+			io.WriteString(w, fmt.Sprintf("%s\n",out))
+		}
+	}
+}
+
 func LmodServer(w http.ResponseWriter, req *http.Request) {
 	cmd:= exec.Command("git", "diff", "-U9999", "HEAD^")
 	cmd.Dir = "/data/brentl/LMOD.History"
