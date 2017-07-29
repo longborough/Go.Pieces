@@ -25,6 +25,8 @@ const (
 	eSend       ElFunc = 3  // Send keystrokes to a terminal
 	eWait       ElFunc = 4  // Wait for a terminal to unlock
 	eReadScrn   ElFunc = 8  // Read the screen from a terminal
+	dllName     string = `ehlapi32.dll`
+	dllProc     string = "HLLAPI"
 )
 
 // Session: a 3270 session handle
@@ -51,8 +53,8 @@ func NewSession(sessid string) (Session, error) {
 	}
 	sid := strings.ToUpper(sessid)
 	
-	dll := syscall.NewLazyDLL("ehllapi32.dll")
-	prc := dll.NewProc("HLLAPI")
+	dll := syscall.NewLazyDLL(dllName)
+	prc := dll.NewProc(dllProc)
 	
 	self := Session{
 		SessId:    sid ,
