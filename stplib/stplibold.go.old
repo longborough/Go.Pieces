@@ -1,0 +1,100 @@
+// ST Pool analysis
+package stplib
+
+import (
+	"math"
+	"fmt"
+)
+
+const delta float64 = 0.1E-9
+
+type STinfo struct {
+// Input parameters
+	nP float64      // Pool size
+	n1 int64        // ST Pool N1 (cycles to timeout)
+	d  float64      // Dispense rate = 3000 per second
+	rP float64      // Proportion that get released
+	tR float64      // Mean time to release
+// Output parameters
+	nU float64      // Mean number in use
+	nC float64      // Mean cycles to normal release
+	r0 float64      // Total release rate (Release + Timeouts)
+	r1 float64      // Normal release rate (per minute)
+	r2 float64      // Never-release timeout rate (per minute)
+	r3 float64      // Unlucky timeout release rate (per minute)
+	pU float64      // Probability a record will get an unlucky timeout
+	tC float64      // Average single cycle time
+	tT float64      // Average timeout time
+	cC int          // Convergence counter
+}
+
+// -----------------------------------------------------------
+// String: provides the interface for printing STinfo structures
+func (t STinfo) String() string {
+	return fmt.Sprintf("%0.3f %7.0f %7.0f %7.0f %7.0f %7.0f %0.3f %0.5f %0.1f %0.5f %d\n",
+		t.tT/60,t.r0,t.r1,t.r2,t.r3,t.nU,100.0*t.nU/t.nP,t.pU,t.nC,t.tC,t.cC)
+}
+func STpoolan(nP float64, n1 int64, d float64, rP float64, tR float64) *STinfo {
+	rr := STinfo{
+	}
+	var last float64 = -1000.0  
+	rr.nU = d * tR                      // Initial guess at number in use
+	for n := 1 ; n <= 5000 ; n++ {
+		if rr.nU >= nP {
+			break
+		}
+		rr.cC = n                       // Convergence count
+		rr.tC = (nP - rr.nU) / d        // Average single cycle time
+		rr.nC = tR / rr.tC              // Average number of cycles
+		rr.tT = float64(n1) * rr.tC     // Average recycle time
+		rr.pU = Pdf(rr.nC,n1,false)     // Poisson probability of release before unlucky
+//		rr.pU = 0.0                     // For now, suppress Unlucky timeouts
+		rr.r0 = d                       // Total releases = total dispenses (steady-state)
+		rr.r1 = rr.r0 * rP              // Releases (RELF + unlucky timeout)
+		rr.r2 = d - rr.r1               // Non-release timeouts
+		rr.r3 = rr.pU * rr.r1           // Unlucky timeouts
+		rr.r1 = rr.r1 - rr.r3           // Actual RELFs
+		rr.nU = rr.r1 * tR / float64(n1) + (rr.r2 + rr.r3) * rr.tC
+//  Check for convergence
+		if math.Abs(rr.tT - last) < delta * rr.tT {
+			rr.pU = Pdf(rr.nC,n1,false)
+			break
+		}
+		last = rr.tT
+	}
+	return &STinfo{
+		nP: nP,     // Pool size
+		n1: n1,     // ST Pool N1 (cycles to timeout)
+		d : d ,     // Dispense rate = 3000 per second
+		rP: rP,     // Proportion that get released
+		tR: tR,     // Mean time to release
+		nU: rr.nU,  // Mean number in use
+		nC: rr.nC,  // Mean cycles to normal release
+		r0: rr.r0,  // Total release rate (Release + Timeouts)
+		r1: rr.r1,  // Normal release rate (per minute)
+		r2: rr.r2,  // Never-release timeout rate (per minute)
+		r3: rr.r3,  // Unlucky timeout release rate (per minute)
+		pU: rr.pU,  // Probability a record will get an unlucky timeout
+		tC: rr.tC,  // Average single cycle time
+		tT: rr.tT,  // Average timeout time
+		cC: rr.cC,  // Convergence count
+	}  
+}      
+
+func Pdf(ncy float64, n1 int64, pp bool) float64 {
+	var i int64
+	var x float64 = 1.0
+	var p float64 = 1.0
+	lm := ncy 
+	if pp {
+		fmt.Printf("%3d %0.5f %0.5f\n",n1,lm,math.Exp(-lm))
+	}
+	for i = 1 ; i <= n1 ; i++ {
+		x = x * lm / float64(i)
+		p += x
+		if pp {
+			fmt.Printf("%3d %3d %0.5f %0.5f\n",n1,i,math.Exp(-lm) * x,math.Exp(-lm) * p)
+		}
+	}
+	return 1.0 - math.Exp(-lm) * p 
+} 
