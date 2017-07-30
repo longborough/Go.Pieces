@@ -2,12 +2,13 @@
 package main
 
 import (
+	"fmt"
 	eh "github.com/longborough/ehllapi"
 )
 
 func main() {
-	print(eh.GetVersion)
+	fmt.Println(eh.GetVersion())
 	mysess, err := eh.NewSession("A")
-	print(mysess.String())
-	print(err)
+	fmt.Println(mysess)
+	fmt.Println(err)
 }
