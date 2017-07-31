@@ -11,4 +11,7 @@ func main() {
 	mysess, err := eh.NewSession("A")
 	fmt.Println(mysess)
 	fmt.Println(err)
+    mysess.Connect()
+    fmt.Println(mysess)
+    
 }

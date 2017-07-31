@@ -35,10 +35,9 @@ const (
 	dllProc     string = "HLLAPI"
 )
 
-var (
-	reSysId,
-	reKeys      *regexp.Regexp	
-)
+var ( reSysId,
+	  reKeys      *regexp.Regexp )
+var ( keytable    map[string]string )
 
 // Session: a 3270 session handle
 type Session struct {
@@ -56,7 +55,10 @@ type Session struct {
 
 func init() {
 	reSysId = regexp.MustCompile("ALCS VTAM application name \\.\\.\\.\\. +([A-Z0-9]{1,8}) ")
-	reKeys  = regexp.MustCompile("\\[[]\\]")
+	keytable = map[string]string {
+		"{tab}":   "@T",
+		"{enter}": "@E", 
+	}  
 }
 
 // String: is the interface for printing Session structures
