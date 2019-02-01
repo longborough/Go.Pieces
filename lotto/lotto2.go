@@ -37,7 +37,7 @@ func (r *LPcg) Pick1(q, n int) []int {
 
 func main() {
 	rng := LPcg {p: pcg.NewPCG32().Seed(1,1).Advance(uint64(time.Now().UnixNano()))}
-	fmt.Printf("Euromillions: %v\t%v\n", rng.Pick1(5, 50), rng.Pick1(2, 11))
+	fmt.Printf("Euromillions: %v\t%v\n", rng.Pick1(5, 50), rng.Pick1(2, 12))
 	fmt.Printf("Thunderball:  %v\t%v\n", rng.Pick1(5, 39), rng.Pick1(1, 14))
 	fmt.Printf("Lotto:        %v\n", rng.Pick1(6, 59))
 	fmt.Printf("Five:         %v\n", rng.Perm1(5))
