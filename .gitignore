@@ -52,4 +52,4 @@
 \#*
 .seed
 *.exe
-ehllapi/ehlapi32.dll
+*.dll*
