@@ -24,8 +24,8 @@ func sieve(mine int, // This instance's own prime
 		}
 	}
 	if start { // Just starting?
-		close(done)                     // Yes - we're last in pipe - signal done
 		print("\n", count, " primes\n") // Number of primes/goroutines
+		close(done)                     // Yes - we're last in pipe - signal done
 	} else {
 		close(ouch) // No - send the signal down the pipe
 	}
